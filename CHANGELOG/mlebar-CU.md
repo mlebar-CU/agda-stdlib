@@ -23,6 +23,10 @@ semicolon and the implication arrow.
 
 --describe overall design
 --bundle lang and structure into a record
---figure out why I didn't pass smaller logical forms as parameters
-
-
+--figure out why I didn't pass smaller logical forms as parameters (or just do so)
+--use module to bundle arguments https://agda.readthedocs.io/en/latest/language/module-system.html
+--fix names per comments
+--open more in proofs
+--add fixities to operators to eliminate parens
+--individual comments
+--full review by above standards
