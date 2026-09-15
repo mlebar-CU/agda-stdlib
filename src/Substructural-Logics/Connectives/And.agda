@@ -4,60 +4,61 @@
 -- Logic with 'and' connective + related proof
 ----------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K  --safe #-}
 
-module Substructural-Logics.Connectives.And where
-
-import Substructural-Logics.Backbone as Logic
-
-record And
-  {Lang : Set} {Struct : Set} (S : Lang → Struct)
-  (_⊢_ : Struct → Lang → Set)
-  (C⟨_⟩ : Struct → Struct )
+module Substructural-Logics.Connectives.And 
+  {l s ℓ} {Lang : Set l} {Struct : Set s} (S : Lang → Struct)
+  (_⊢_ : Struct → Lang → Set ℓ)
+  (C⟨_⟩ : Struct → Struct)
   (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ _∧_ : Lang → Lang → Lang) : Set where
+  
+  where
+
+open import Substructural-Logics.Backbone S _⊢_ C⟨_⟩ _⨾_
+open import Level using (Level; _⊔_)
+
+private
+  variable
+    A B C : Lang
+    X Y Z : Struct
+    _⇒₁_ : Lang → Lang → Lang
+    _∧₁_ : Lang → Lang → Lang
+    
+
+record And(_⇒_ _∧_ : Lang → Lang → Lang) : Set (l ⊔ s ⊔ ℓ) where
   field
-    is-logic : Logic S _⊢_ C⟨_⟩ _⨾_  _⇒_
+    has-backbone : Backbone _⇒_
     and-introduction :
-      ∀ {X : Struct} {A B : Lang} →
       X ⊢ A →
       X ⊢ B →
       -------------------
       X ⊢ (A ∧ B)
     and-elimination-1 :
-      ∀ {X : Struct} {A B : Lang} →
       X ⊢ (A ∧ B) →
       -------------------
       X ⊢ A
     and-elimination-2 :
-      ∀ {X : Struct} {A B : Lang} →
       X ⊢ (A ∧ B) →
       -------------------
       X ⊢ B
 
 if-and-distrib :
-  ∀ (Lang : Set) (Struct : Set)
-  (S : Lang → Struct)
-  (_⊢_ : Struct → Lang → Set)
-  (C⟨_⟩ : Struct → Struct)
-  (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ _∧_ : Lang → Lang → Lang) →
-  And S _⊢_ C⟨_⟩ _⨾_ _⇒_ _∧_ → ∀ {A B C : Lang}  →
+  And (_⇒₁_) (_∧₁_) →
   -----------------------------------------------------------------
-  (S ((A ⇒ B) ∧ (A ⇒ C))) ⊢ (A ⇒ (B ∧ C))
+  (S ((A ⇒₁ B) ∧₁ (A ⇒₁ C))) ⊢ (A ⇒₁ (B ∧₁ C))
 
 -- proof from page 34
-if-and-distrib Lang Struct S _⊢_ C⟨_⟩ _⨾_ _⇒_ _∧_ x =
-  Logic.if-introduction y
+if-and-distrib x = 
+  Backbone.⇒-introduction y
     (And.and-introduction x
-      (Logic.if-elimination y
+      (Backbone.⇒-elimination y
         (And.and-elimination-1 x
-          (Logic.hypothesis y))
-        (Logic.hypothesis y))
-      (Logic.if-elimination y
+          (Backbone.hypothesis y))
+        (Backbone.hypothesis y))
+      (Backbone.⇒-elimination y
         (And.and-elimination-2 x
-          (Logic.hypothesis y))
-        (Logic.hypothesis y)))
+          (Backbone.hypothesis y))
+        (Backbone.hypothesis y)))
     where
-    y = And.is-logic x
+    y = And.has-backbone x
 
