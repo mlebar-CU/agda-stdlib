@@ -4,20 +4,21 @@
 -- Logic with Converse Associative structural rule
 ----------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
-module Substructural-Logics.Structural-Rules.B^c where
-
-open import Substructural-Logics.Backbone
-
-record Bᶜ-Logic
+module Substructural-Logics.Structural-Rules.B^c 
   {Lang : Set} {Struct : Set} (S : Lang → Struct)
   (_⊢_ : Struct → Lang → Set)
   (C⟨_⟩ : Struct → Struct)
   (_⨾_ : Struct → Struct → Struct)
+  where
+
+open import Substructural-Logics.Backbone S _⊢_ C⟨_⟩ _⨾_
+
+record Bᶜ-Logic
   (_⇒_ : Lang → Lang → Lang) : Set where
   field
-    is-logic : Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_
+    has-backbone : Backbone _⇒_
 
     converse-assoc :
       ∀ {X Y Z : Struct} {A : Lang} →
