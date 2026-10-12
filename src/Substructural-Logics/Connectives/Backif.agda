@@ -5,30 +5,36 @@
 -- related proof
 ----------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
-module Substructural-Logics.Connectives.Backif where
-
-open import Substructural-Logics.Backbone
-open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
-
-record Backif-Logic
+module Substructural-Logics.Connectives.Backif 
   {Lang : Set} {Struct : Set} (S : Lang → Struct)
   (_⊢_ : Struct → Lang → Set)
   (C⟨_⟩ : Struct → Struct )
   (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ _⇐_ : Lang → Lang → Lang) : Set where
+  where
+
+private 
+  variable
+    A B C : Lang
+    X Y Z : Struct
+    _⇒₁_ _⇒₂_ : Lang → Lang → Lang
+    _⇐₁_ _⇐₂_ : Lang → Lang → Lang
+
+open import Substructural-Logics.Backbone S _⊢_ C⟨_⟩ _⨾_
+open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
+
+record Backif-Logic
+    (_⇒_ _⇐_ : Lang → Lang → Lang) : Set where
   field
-    is-logic : Logic S _⊢_ C⟨_⟩ _⨾_  _⇒_
+    has-backbone : Backbone _⇒_
 
     backif-introduction :
-      ∀ {X : Struct} {A B : Lang} →
       ((S A) ⨾ X) ⊢ B →
       -------------------
       X ⊢ (B ⇐ A)
 
     backif-elimination :
-      ∀ {X Y : Struct} {A B : Lang} →
       X ⊢ (B ⇐ A) →
       Y ⊢ A →
       -------------------
@@ -37,26 +43,20 @@ record Backif-Logic
 
 -- Uniqueness of back-conditionals
 backif-unique :
-  ∀ (Lang : Set) (Struct : Set) (S : Lang → Struct)
-  (_⊢_ : Struct → Lang → Set)
-  (C⟨_⟩ : Struct → Struct)
-  (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ _⇐₁_ _⇐₂_ : Lang → Lang → Lang) →
-  Backif-Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_ _⇐₁_ →
-  Backif-Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_ _⇐₂_ →
-  ∀ {A B : Lang} →
+  Backif-Logic (_⇒₁_) (_⇐₁_) →
+  Backif-Logic (_⇒₂_) (_⇐₂_) →
   ---------------------------------------------------------
   (S (A ⇐₁ B)) ⊢ (A ⇐₂ B) × (S (A ⇐₂ B)) ⊢ (A ⇐₁ B)
 
-backif-unique Lang Struct S _⊢_ C⟨_⟩ _⨾_ _⇒_ _⇐₁_ _⇐₂_ x y =
+backif-unique x y = 
   ⟨ (Backif-Logic.backif-introduction y
       (Backif-Logic.backif-elimination x
-        (Logic.hypothesis z)
-        (Logic.hypothesis w))) ,
+        (Backbone.hypothesis z)
+        (Backbone.hypothesis w))) ,
       Backif-Logic.backif-introduction x
         (Backif-Logic.backif-elimination y
-          (Logic.hypothesis w)
-          (Logic.hypothesis z)) ⟩
+          (Backbone.hypothesis w)
+          (Backbone.hypothesis z)) ⟩
     where
-    z = Backif-Logic.is-logic x
-    w = Backif-Logic.is-logic y
+    z = Backif-Logic.has-backbone x
+    w = Backif-Logic.has-backbone y
