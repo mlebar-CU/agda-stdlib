@@ -7,7 +7,7 @@
 {-# OPTIONS --without-K --safe #-}
 
 module Substructural-Logics.Connectives.Fusion 
-   {Lang : Set} {Struct : Set} (S : Lang → Struct)
+  {Lang : Set} {Struct : Set} (S : Lang → Struct)
   (_⊢_ : Struct → Lang → Set)
   (C⟨_⟩ : Struct → Struct)
   (_⨾_ : Struct → Struct → Struct)

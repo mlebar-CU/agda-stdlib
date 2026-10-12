@@ -25,7 +25,7 @@ private
     _∧₁_ : Lang → Lang → Lang
     
 
-record And(_⇒_ _∧_ : Lang → Lang → Lang) : Set (l ⊔ s ⊔ ℓ) where
+record And-Logic (_⇒_ _∧_ : Lang → Lang → Lang) : Set (l ⊔ s ⊔ ℓ) where
   field
     has-backbone : Backbone _⇒_
     and-introduction :
@@ -43,22 +43,22 @@ record And(_⇒_ _∧_ : Lang → Lang → Lang) : Set (l ⊔ s ⊔ ℓ) where
       X ⊢ B
 
 if-and-distrib :
-  And (_⇒₁_) (_∧₁_) →
+  And-Logic (_⇒₁_) (_∧₁_) →
   -----------------------------------------------------------------
   (S ((A ⇒₁ B) ∧₁ (A ⇒₁ C))) ⊢ (A ⇒₁ (B ∧₁ C))
 
 -- proof from page 34
 if-and-distrib x = 
   Backbone.⇒-introduction y
-    (And.and-introduction x
+    (And-Logic.and-introduction x
       (Backbone.⇒-elimination y
-        (And.and-elimination-1 x
+        (And-Logic.and-elimination-1 x
           (Backbone.hypothesis y))
         (Backbone.hypothesis y))
       (Backbone.⇒-elimination y
-        (And.and-elimination-2 x
+        (And-Logic.and-elimination-2 x
           (Backbone.hypothesis y))
         (Backbone.hypothesis y)))
     where
-    y = And.has-backbone x
+    y = And-Logic.has-backbone x
 

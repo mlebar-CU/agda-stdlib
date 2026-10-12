@@ -4,86 +4,84 @@
 -- Logic with 'or' connective + related proof
 ----------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
-module Substructural-Logics.Connectives.Or where
-
-open import Substructural-Logics.Backbone
-open import Substructural-Logics.Connectives.And
-open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
-
-record Or-Logic
+module Substructural-Logics.Connectives.Or 
   {Lang : Set} {Struct : Set} (S : Lang → Struct)
   (_⊢_ : Struct → Lang → Set)
   (C⟨_⟩ : Struct → Struct )
   (_⨾_ : Struct → Struct → Struct)
+  where
+
+private 
+  variable
+    A B C : Lang
+    X Y Z W : Struct
+    _⇒₁_ : Lang → Lang → Lang
+    _∧₁_ : Lang → Lang → Lang
+    _∨₁_ : Lang → Lang → Lang
+
+
+open import Substructural-Logics.Backbone S _⊢_ C⟨_⟩ _⨾_ 
+open import Substructural-Logics.Connectives.And S _⊢_ C⟨_⟩ _⨾_ 
+open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
+
+record Or-Logic
   (_⇒_ _∨_ : Lang → Lang → Lang) : Set where
   field
-    is-logic : Logic S _⊢_ C⟨_⟩ _⨾_  _⇒_
+    has-backbone : Backbone _⇒_
 
     product-context :
-      ∀ {X Y Z : Struct} {A : Lang} →
       (C⟨ X ⟩ ⊢ A × C⟨ Y ⟩ ⊢ A → C⟨ Z ⟩ ⊢ A) →
       X ⊢ A × Y ⊢ A  →
       ---------
       Z ⊢ A
 
     semicolon-product-context-l :
-      ∀ {X Y Z W : Struct} {A : Lang} →
       (C⟨ X ⟩ ⊢ A × C⟨ Y ⟩ ⊢ A → C⟨ Z ⟩ ⊢ A) →
       ----------------------------------------
       (C⟨ W ⨾ X ⟩ ⊢ A × C⟨ W ⨾ Y ⟩ ⊢ A → C⟨ W ⨾ Z ⟩ ⊢ A)
 
     semicolon-product-context-r :
-      ∀ {X Y Z W : Struct} {A : Lang} →
       (C⟨ X ⟩ ⊢ A × C⟨ Y ⟩ ⊢ A → C⟨ Z ⟩ ⊢ A) →
       ----------------------------------------
       (C⟨ X ⨾ W ⟩ ⊢ A × C⟨ Y ⨾ W ⟩ ⊢ A → C⟨ Z ⨾ W ⟩ ⊢ A)
 
     or-introduction-1 :
-      ∀ {X : Struct} {A B : Lang} →
       X ⊢ A →
       ---------
       X ⊢ (A ∨ B)
 
     or-introduction-2 :
-      ∀ {X : Struct} {A B : Lang} →
       X ⊢ B →
       ---------------
       X ⊢ (A ∨ B)
 
     or-elimination :
-      ∀ {X : Struct} {A B C : Lang} →
       X ⊢ (A ∨ B) →
       --------------------------------------------------
       (C⟨ (S A) ⟩ ⊢ C × C⟨ (S B) ⟩ ⊢ C  → C⟨ X ⟩ ⊢ C)
 
 
 or-if-distrib :
-  ∀ (Lang : Set) (Struct : Set) (S : Lang → Struct)
-  (_⊢_ : Struct → Lang → Set)
-  (C⟨_⟩ : Struct → Struct)
-  (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ _∧_ _∨_ : Lang → Lang → Lang) →
-  Or-Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_ _∨_ →
-  And-Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_ _∧_ →
-  ∀ {A B C : Lang} →
+  Or-Logic _⇒₁_ _∨₁_ →
+  And-Logic _⇒₁_ _∧₁_ →
   ---------------------------------------
-  S ((A ⇒ C) ∧ (B ⇒ C)) ⊢ ((A ∨ B) ⇒ C)
+  S ((A ⇒₁ C) ∧₁ (B ⇒₁ C)) ⊢ ((A ∨₁ B) ⇒₁ C)
 
-or-if-distrib Lang Struct S _⊢_ C⟨_⟩ _⨾_ _⇒_ _∧_ _∨_ x y =
-   Logic.if-introduction z
+or-if-distrib x y =
+   Backbone.⇒-introduction z
     (Or-Logic.product-context x
       (Or-Logic.semicolon-product-context-l x
         (Or-Logic.or-elimination x
-          (Logic.hypothesis z)))
-      ⟨ Logic.if-elimination z
+          (Backbone.hypothesis z)))
+      ⟨ Backbone.⇒-elimination z
         (And-Logic.and-elimination-1 y
-          (Logic.hypothesis z))
-        (Logic.hypothesis z) ,
-        Logic.if-elimination z
+          (Backbone.hypothesis z))
+        (Backbone.hypothesis z) ,
+        Backbone.⇒-elimination z
           (And-Logic.and-elimination-2 y
-            (Logic.hypothesis z))
-          (Logic.hypothesis z) ⟩)
+            (Backbone.hypothesis z))
+          (Backbone.hypothesis z) ⟩)
     where
-    z = Or-Logic.is-logic x
+    z = Or-Logic.has-backbone x
