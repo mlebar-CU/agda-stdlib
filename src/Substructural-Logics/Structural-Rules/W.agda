@@ -5,47 +5,46 @@
 -- proof
 ----------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
-module Substructural-Logics.Structural-Rules.W where
-
-open import Substructural-Logics.Backbone
-
-record W-Logic
+module Substructural-Logics.Structural-Rules.W 
   {Lang : Set} {Struct : Set} (S : Lang → Struct)
   (_⊢_ : Struct → Lang → Set)
   (C⟨_⟩ : Struct → Struct)
   (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ : Lang → Lang → Lang) : Set where
+  where
+
+private
+  variable
+    A B : Lang
+    X Y : Struct
+    _⇒₁_ : Lang → Lang → Lang
+
+open import Substructural-Logics.Backbone S _⊢_ C⟨_⟩ _⨾_ 
+
+record W-Logic (_⇒_ : Lang → Lang → Lang) : Set where
   field
-    is-logic : Logic S _⊢_ C⟨_⟩ _⨾_  _⇒_
+    has-backbone : Backbone _⇒_
 
     strong-contract :
-      ∀ {X Y : Struct} {A : Lang} →
       C⟨ ((X ⨾  Y) ⨾ Y) ⟩ ⊢ A →
       -----------------
       C⟨ X ⨾  Y ⟩ ⊢ A
 
 double-if-contract :
-  ∀ (Lang : Set) (Struct : Set) (S : Lang → Struct)
-  (_⊢_ : Struct → Lang → Set)
-  (C⟨_⟩ : Struct → Struct)
-  (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ : Lang → Lang → Lang) →
-  W-Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_ →
-  ∀ {A B C : Lang} →
+  W-Logic _⇒₁_ →
   ---------------------------
-  S (A ⇒ (A ⇒ B)) ⊢ (A ⇒ B)
+  S (A ⇒₁ (A ⇒₁ B)) ⊢ (A ⇒₁ B)
 
 -- proof from page 28
-double-if-contract Lang Struct S _⊢_ C⟨_⟩ _⨾_ _⇒_ x =
-  Logic.if-introduction y
-    (Logic.context y
+double-if-contract x =
+  Backbone.⇒-introduction y
+    (Backbone.context-elimination y
       (W-Logic.strong-contract x)
-      (Logic.if-elimination y
-        (Logic.if-elimination y
-          (Logic.hypothesis y)
-          (Logic.hypothesis y))
-        (Logic.hypothesis y)))
+      (Backbone.⇒-elimination y
+        (Backbone.⇒-elimination y
+          (Backbone.hypothesis y)
+          (Backbone.hypothesis y))
+        (Backbone.hypothesis y)))
     where
-    y = W-Logic.is-logic x
+    y = W-Logic.has-backbone x

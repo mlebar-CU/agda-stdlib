@@ -4,23 +4,27 @@
 -- Logic with Commuted Weakening structural rule
 ----------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
-module Substructural-Logics.Structural-Rules.K' where
-
-open import Substructural-Logics.Backbone
-
-record K'-Logic
+module Substructural-Logics.Structural-Rules.K'
   {Lang : Set} {Struct : Set} (S : Lang → Struct)
   (_⊢_ : Struct → Lang → Set)
   (C⟨_⟩ : Struct → Struct)
   (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ : Lang → Lang → Lang) : Set where
+   where
+
+private
+  variable
+    A B C : Lang
+    X Y Z : Struct
+
+open import Substructural-Logics.Backbone S _⊢_ C⟨_⟩ _⨾_ 
+
+record K'-Logic (_⇒_ : Lang → Lang → Lang) : Set where
   field
-    is-logic : Logic S _⊢_ C⟨_⟩ _⨾_  _⇒_
+    has-backbone : Backbone  _⇒_
 
     commute-weaken :
-      ∀ {X Y : Struct} {A : Lang} →
       C⟨ X ⟩ ⊢ A →
       ---------------
       C⟨ Y ⨾  X ⟩ ⊢ A

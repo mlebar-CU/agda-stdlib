@@ -4,43 +4,42 @@
 -- Logic with Weakening structural rule + related proof
 ----------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
-module Substructural-Logics.Structural-Rules.K where
-
-open import Substructural-Logics.Backbone
-
-record K-Logic
+module Substructural-Logics.Structural-Rules.K 
   {Lang : Set} {Struct : Set} (S : Lang → Struct)
   (_⊢_ : Struct → Lang → Set)
   (C⟨_⟩ : Struct → Struct)
   (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ : Lang → Lang → Lang) : Set where
+  where
+
+private
+  variable
+    A B C : Lang
+    X Y Z : Struct
+    _⇒₁_ : Lang → Lang → Lang
+
+open import Substructural-Logics.Backbone S _⊢_ C⟨_⟩ _⨾_ 
+
+record K-Logic (_⇒_ : Lang → Lang → Lang) : Set where
   field
-    is-logic : Logic S _⊢_ C⟨_⟩ _⨾_  _⇒_
+    has-backbone : Backbone _⇒_
 
     weaken :
-      ∀ {X Y : Struct} {A : Lang} →
       (C⟨ X ⟩ ) ⊢ A →
       ------------------
       (C⟨ X ⨾  Y ⟩) ⊢ A
 
 if-weaken :
-  ∀ (Lang : Set) (Struct : Set) (S : Lang → Struct)
-  (_⊢_ : Struct → Lang → Set)
-  (C⟨_⟩ : Struct → Struct)
-  (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ : Lang → Lang → Lang) →
-  K-Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_ →
-  ∀ {A B : Lang} →
+  K-Logic _⇒₁_ →
   -----------------
-  (S A) ⊢ (B ⇒ A)
+  (S A) ⊢ (B ⇒₁ A)
 
 --proof from page 27
-if-weaken Lang Struct S _⊢_ C⟨_⟩ _⨾_ _⇒_ x =
-  Logic.if-introduction y
-    (Logic.context y
+if-weaken Lang Struct x =
+  Backbone.⇒-introduction y
+    (Backbone.context-elimination y
       (K-Logic.weaken x)
-      (Logic.hypothesis y))
+      (Backbone.hypothesis y))
     where
-    y = K-Logic.is-logic x
+    y = K-Logic.has-backbone x
