@@ -5,20 +5,26 @@
 -- related proof
 ----------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
-module Substructural-Logics.Structural-Rules.C where
-
-open import Substructural-Logics.Backbone
-
-record C-Logic
+module Substructural-Logics.Structural-Rules.C 
   {Lang : Set} {Struct : Set} (S : Lang → Struct)
   (_⊢_ : Struct → Lang → Set)
   (C⟨_⟩ : Struct → Struct)
   (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ : Lang → Lang → Lang) : Set where
+  where
+
+private
+  variable
+    A B C : Lang
+    X Y Z : Struct
+    _⇒₁_ : Lang → Lang → Lang
+
+open import Substructural-Logics.Backbone S _⊢_ C⟨_⟩ _⨾_
+
+record C-Logic (_⇒_ : Lang → Lang → Lang) : Set where
   field
-    is-logic : Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_
+    has-backbone : Backbone  _⇒_
 
     strong-commute : ∀ {X Y Z : Struct} {A : Lang} →
       C⟨ ((X ⨾  Y) ⨾ Z) ⟩ ⊢ A →
@@ -26,26 +32,20 @@ record C-Logic
       C⟨ ((X ⨾  Z) ⨾ Y) ⟩ ⊢ A
 
 if-rearrange :
-  ∀ (Lang : Set) (Struct : Set) (S : Lang → Struct)
-  (_⊢_ : Struct → Lang → Set)
-  (C⟨_⟩ : Struct → Struct)
-  (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ : Lang → Lang → Lang) →
-  C-Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_ →
-  ∀ {A B C : Lang} →
+  C-Logic _⇒₁_ →
   -----------------------------------
-  (S (A ⇒ (B ⇒ C))) ⊢ (B ⇒ (A ⇒ C))
+  (S (A ⇒₁ (B ⇒₁ C))) ⊢ (B ⇒₁ (A ⇒₁ C))
 
 --proof from page 27
-if-rearrange Lang Struct S _⊢_ C⟨_⟩ _⨾_ _⇒_ x =
-  Logic.if-introduction y
-    (Logic.if-introduction y
-      ( Logic.context y
+if-rearrange x =
+  Backbone.⇒-introduction y
+    (Backbone.⇒-introduction y
+      ( Backbone.context-elimination y
         (C-Logic.strong-commute x)
-        (Logic.if-elimination y
-          (Logic.if-elimination y
-            (Logic.hypothesis y)
-            (Logic.hypothesis y))
-          (Logic.hypothesis y))))
+        (Backbone.⇒-elimination y
+          (Backbone.⇒-elimination y
+            (Backbone.hypothesis y)
+            (Backbone.hypothesis y))
+          (Backbone.hypothesis y))))
     where
-    y = C-Logic.is-logic x
+    y = C-Logic.has-backbone x
