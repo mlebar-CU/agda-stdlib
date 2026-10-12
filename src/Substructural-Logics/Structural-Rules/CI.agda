@@ -5,45 +5,46 @@
 -- proof
 ----------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
-module Substructural-Logics.Structural-Rules.CI where
-
-open import Substructural-Logics.Backbone
-
-record CI-Logic
+module Substructural-Logics.Structural-Rules.CI 
   {Lang : Set} {Struct : Set} (S : Lang → Struct)
   (_⊢_ : Struct → Lang → Set)
   (C⟨_⟩ : Struct → Struct)
   (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ : Lang → Lang → Lang) : Set where
+  where
+
+private
+  variable
+    A B C : Lang
+    X Y Z : Struct
+    _⇒₁_ : Lang → Lang → Lang
+
+open import Substructural-Logics.Backbone S _⊢_ C⟨_⟩ _⨾_ 
+
+record CI-Logic (_⇒_ : Lang → Lang → Lang) : Set where
   field
-    is-logic : Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_
+    has-backbone : Backbone _⇒_
 
     weak-commute :
-      ∀ {X Y : Struct} {A : Lang} →
       C⟨ X ⨾ Y ⟩ ⊢ A →
       -----------------
       C⟨ Y ⨾ X ⟩ ⊢ A
 
 
 modus-ponens-pullback :
-  ∀ (Lang : Set) (Struct : Set) (S : Lang → Struct)
-  (_⊢_ : Struct → Lang → Set)
-  (C⟨_⟩ : Struct → Struct)
-  (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ : Lang → Lang → Lang) → CI-Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_ → ∀ {A B : Lang} →
+  CI-Logic _⇒₁_ → 
   -----------------------
-  (S A) ⊢ ((A ⇒ B) ⇒ B)
+  (S A) ⊢ ((A ⇒₁ B) ⇒₁ B)
 
 
 -- proof from page 27
-modus-ponens-pullback Lang Struct S _⊢_ C⟨_⟩ _⨾_ _⇒_ x =
-  Logic.if-introduction y
-    (Logic.context y
+modus-ponens-pullback x =
+  Backbone.⇒-introduction y
+    (Backbone.context-elimination y
       (CI-Logic.weak-commute x)
-      (Logic.if-elimination y
-        (Logic.hypothesis y)
-        (Logic.hypothesis y)))
+      (Backbone.⇒-elimination y
+        (Backbone.hypothesis y)
+        (Backbone.hypothesis y)))
   where
-  y = CI-Logic.is-logic x
+  y = CI-Logic.has-backbone x
