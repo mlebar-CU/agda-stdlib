@@ -4,30 +4,37 @@
 -- Logic with 'fusion' connective + related proof
 ----------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
-module Logic.Connectives.Fusion where
-
-open import Substructural-Logics.Backbone
-open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
-
-record Fusion-Logic
-  {Lang : Set} {Struct : Set} (S : Lang → Struct)
+module Substructural-Logics.Connectives.Fusion 
+   {Lang : Set} {Struct : Set} (S : Lang → Struct)
   (_⊢_ : Struct → Lang → Set)
   (C⟨_⟩ : Struct → Struct)
   (_⨾_ : Struct → Struct → Struct)
+  where
+
+private 
+  variable
+    A B C : Lang
+    X Y Z : Struct
+    _⇒₁_ _⇒₂_ : Lang → Lang → Lang
+    _⇐₁_ _⇐₂_ : Lang → Lang → Lang
+    _∘₁_ _∘₂_ : Lang → Lang → Lang
+
+open import Substructural-Logics.Backbone S _⊢_ C⟨_⟩ _⨾_
+open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
+
+record Fusion-Logic
   (_⇒_ _∘_ : Lang → Lang → Lang) : Set where
   field
-    is-logic : Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_
+    has-backbone : Backbone _⇒_
 
     fusion-introduction :
-      ∀ {X Y : Struct} {A B : Lang} →
       X ⊢ A → Y ⊢ B →
       -------------------
       (X ⨾ Y) ⊢ (A ∘ B)
 
     fusion-elimination :
-      ∀ {X : Struct} {A B C : Lang} →
       X ⊢ (A ∘ B) →
       ------------------------------------------
       C⟨ (S A) ⨾ (S B) ⟩ ⊢ C → C⟨ X ⟩ ⊢ C
@@ -35,28 +42,22 @@ record Fusion-Logic
 
 -- Lemma 2.25 (Uniqueness of fusion)
 fusion-unique :
-  ∀ (Lang : Set) (Struct : Set) (S : Lang → Struct)
-  (_⊢_ : Struct → Lang → Set)
-  (C⟨_⟩ : Struct → Struct)
-  (_⨾_ : Struct → Struct → Struct)
-  (_⇒_ _∘₁_ _∘₂_ : Lang → Lang → Lang) →
-  Fusion-Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_ _∘₁_ →
-  Fusion-Logic S _⊢_ C⟨_⟩ _⨾_ _⇒_ _∘₂_  →
-  ∀ {A B : Lang} →
+  Fusion-Logic _⇒₁_ _∘₁_ →
+  Fusion-Logic _⇒₁_ _∘₂_  →
   ---------------------------------------------------------
   (S (A ∘₁ B)) ⊢ (A ∘₂ B) × (S (A ∘₂ B)) ⊢ (A ∘₁ B)
 
-fusion-unique Lang Struct S _⊢_ C⟨_⟩ _⨾_ _⇒_ _∘₁_ _∘₂_ x y =
-  ⟨ Logic.context z
-      (Fusion-Logic.fusion-elimination x (Logic.hypothesis w))
+fusion-unique x y =
+  ⟨ Backbone.context-elimination z
+      (Fusion-Logic.fusion-elimination x (Backbone.hypothesis w))
       (Fusion-Logic.fusion-introduction y
-          (Logic.hypothesis w)
-          (Logic.hypothesis w)) ,
-    Logic.context w
-      (Fusion-Logic.fusion-elimination y (Logic.hypothesis z))
+          (Backbone.hypothesis w)
+          (Backbone.hypothesis w)) ,
+    Backbone.context-elimination w
+      (Fusion-Logic.fusion-elimination y (Backbone.hypothesis z))
       (Fusion-Logic.fusion-introduction x
-          (Logic.hypothesis z)
-          (Logic.hypothesis z)) ⟩
+          (Backbone.hypothesis z)
+          (Backbone.hypothesis z)) ⟩
     where
-    z = Fusion-Logic.is-logic x
-    w = Fusion-Logic.is-logic y
+    z = Fusion-Logic.has-backbone x
+    w = Fusion-Logic.has-backbone y
